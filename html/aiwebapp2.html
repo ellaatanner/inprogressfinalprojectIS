@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GTA 6 Simplified</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      background: url('https://via.placeholder.com/1920x1080/CCCCCC/FFFFFF?text=City+Background') no-repeat center center;
+      background-size: cover;
+    }
+
+    #info {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 18px;
+      z-index: 10;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <p>Use Arrow Keys to Move</p>
+    <p>Coins Collected: <span id="score">0</span></p>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Game variables
+    const player = {
+      x: 100,
+      y: 100,
+      size: 50,
+      speed: 5,
+      image: new Image(),
+    };
+    player.image.src = "https://via.placeholder.com/50/0000FF/FFFFFF?text=Player"; // Player image
+
+    const coins = [];
+    const coinImage = new Image();
+    coinImage.src = "https://via.placeholder.com/30/FFD700/FFFFFF?text=Coin"; // Coin image
+
+    let score = 0;
+
+    // Spawn a new coin
+    function spawnCoin() {
+      const x = Math.random() * (canvas.width - 30); // Prevent coins from spawning outside the canvas
+      const y = Math.random() * (canvas.height - 30);
+      coins.push({ x, y, size: 30 });
+    }
+
+    // Spawn initial coins
+    for (let i = 0; i < 5; i++) spawnCoin();
+
+    // Draw player
+    function drawPlayer() {
+      ctx.drawImage(player.image, player.x, player.y, player.size, player.size);
+    }
+
+    // Draw coins
+    function drawCoins() {
+      coins.forEach((coin) => {
+        ctx.drawImage(coinImage, coin.x, coin.y, coin.size, coin.size);
+      });
+    }
+
+    // Movement handling
+    const keys = {};
+    document.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+    });
+    document.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    function movePlayer() {
+      if (keys["ArrowUp"] && player.y > 0) player.y -= player.speed;
+      if (keys["ArrowDown"] && player.y + player.size < canvas.height) player.y += player.speed;
+      if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
+      if (keys["ArrowRight"] && player.x + player.size < canvas.width) player.x += player.speed;
+    }
+
+    // Detect collision
+    function detectCollisions() {
+      coins.forEach((coin, index) => {
+        const distX = Math.abs(player.x + player.size / 2 - (coin.x + coin.size / 2));
+        const distY = Math.abs(player.y + player.size / 2 - (coin.y + coin.size / 2));
+
+        if (distX < player.size / 2 + coin.size / 2 && distY < player.size / 2 + coin.size / 2) {
+          coins.splice(index, 1); // Remove coin
+          score++;
+          document.getElementById("score").textContent = score; // Update score
+          spawnCoin(); // Spawn a new coin
+        }
+      });
+    }
+
+    // Game loop
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+      movePlayer();
+      drawPlayer();
+      drawCoins();
+      detectCollisions();
+      requestAnimationFrame(gameLoop); // Continue the loop
+    }
+
+    // Start the game
+    gameLoop();
+  </script>
+</body>
+</html>
